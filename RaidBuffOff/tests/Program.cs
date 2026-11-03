@@ -78,6 +78,31 @@ static class Tests
         Check(p.Plan(Active, new HashSet<uint>(), Selected, [Buff], 0.4).Count == 0, "Unchecking all areas blocks removal");
         Check(p.Plan(Active with { Ready = false }, Areas, Selected, [Buff], 0.5).Count == 0, "Loading, death and cutscenes block removal");
         Check(p.Plan(Active, Areas, Selected, [], 0.6).Count == 0, "Do nothing when the selected buff is absent");
+        // All-area testing bypasses only the territory allowlist, not the other activation gates.
+        for (int mask = 0; mask < 32; mask++)
+        {
+            bool enabled = (mask & 1) != 0, logged = (mask & 2) != 0, ready = (mask & 4) != 0;
+            bool combat = (mask & 8) != 0, selected = (mask & 16) != 0;
+            var c = new RunContext(enabled, logged, ready, combat, 101, logged ? 42ul : 0ul, true);
+            var statuses = selected ? Selected : new HashSet<uint>();
+            Check((RemovalPolicy.Evaluate(c, new HashSet<uint>(), statuses) == GateReason.Active) ==
+                (enabled && logged && ready && combat && selected), $"All-area activation mask {mask}");
+        }
+        var testMode = Active with { TerritoryId = 999, TestAllAreas = true };
+        Check(RemovalPolicy.Evaluate(testMode, new HashSet<uint>(), Selected) == GateReason.Active,
+            "Testing works in an unlisted area without selecting an Ultimate");
+        Check(RemovalPolicy.Evaluate(testMode with { TestAllAreas = false }, Areas, Selected) == GateReason.AreaNotSelected,
+            "Turning off testing restores the Ultimate allowlist");
+        Check(RemovalPolicy.Evaluate(testMode with { TerritoryId = 0 }, Areas, Selected) == GateReason.AreaNotSelected,
+            "Testing does not allow an unloaded territory");
+        p = new RemovalPlanner();
+        Check(p.Plan(testMode, new HashSet<uint>(), Selected, [Buff], 0).Count == 1, "All-area test can plan a selected buff");
+        Check(p.Plan(testMode with { InCombat = false }, Areas, Selected, [Buff], 0.1).Count == 0,
+            "All-area testing still does nothing outside combat");
+        Check(p.Plan(testMode with { Enabled = false }, Areas, Selected, [Buff], 0.2).Count == 0,
+            "DTR OFF still blocks testing everywhere");
+        Check(p.Plan(testMode with { TestAllAreas = false }, Areas, Selected, [Buff], 0.3).Count == 0,
+            "Disabling all-area testing stops an unlisted area immediately");
         count += CatalogTests.Run();
         if (args.Length == 2 && args[0] == "--catalog-output")
             File.WriteAllText(args[1], System.Text.Json.JsonSerializer.Serialize(new {

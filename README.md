@@ -1,6 +1,6 @@
 # Raid Buff Off
 
-國際服 Dalamud API 15 插件，僅在已勾選絕境戰的戰鬥中，取消自己身上已勾選、可自行取消的團隊增益。
+國際服 Dalamud API 15 插件，在已勾選絕境戰的戰鬥中取消自己身上已勾選的團隊增益。可另勾選「測試區域：所有區域」在其他區域戰鬥中測試。
 
 ## DTR bar
 
@@ -8,21 +8,22 @@
 
 ## 職業增益清單
 
-- 占星術士 AST：Divination、The Balance、The Spear。
-- 武僧 MNK：Brotherhood。
-- 龍騎士 DRG：Battle Litany。
+- Astrologian AST：Divination、The Balance、The Spear。
+- Monk MNK：Brotherhood。
+- Dragoon DRG：Battle Litany。
 - Reaper RPR：Arcane Circle。
-- 吟遊詩人 BRD：Battle Voice、Radiant Finale。
-- 舞者 DNC：Technical Finish、Devilment。
-- 召喚師 SMN：Searing Light。
-- 赤魔法師 RDM：Embolden。
-- Pictomancer PCT：Starry Muse。
+- Bard BRD：Battle Voice、Radiant Finale。
+- Dancer DNC：Technical Finish、Devilment。
+- Summoner SMN：Searing Light。
+- Red Mage RDM：Embolden。
 
-各職業分組以 checkbox 勾選，每橫排三個職業；保留增益搜尋，不提供「只顯示已勾選」或「只顯示目前身上的增益」篩選；同名版本集中在一個勾選項目。清單使用已核對的 PvE 狀態 ID，並檢查遊戲名稱及正面增益分類；不會混入同名的舊版或 PvP 狀態。CanStatusOff 欄位不足以單獨判定這份 PvE 清單。每次取消仍由遊戲判定，回傳拒絕時不視為成功。沒有「所有增益」選項。圖片巨集中 Starry Mues 的拼字以正式名稱 Starry Muse 為準。
+職業標題全部使用英文、固定展開，沒有收合箭頭。每橫排三個職業，各增益以 checkbox 勾選；保留增益搜尋，不提供「只顯示已勾選」或「只顯示目前身上的增益」篩選；同名版本集中在一個勾選項目。清單使用已核對的 PvE 狀態 ID，並檢查遊戲名稱及正面增益分類；不會混入同名的舊版或 PvP 狀態。CanStatusOff 欄位不足以單獨判定這份 PvE 清單。每次取消仍由遊戲判定，回傳拒絕時不視為成功。沒有「所有增益」選項。Starry Muse 已移除，不會出現在清單中，也不會再對它執行取消；舊版對它的勾選會自動清除。
 
 ## 生效場景
 
-場景清單僅保留七個絕境戰：
+場景頁最上方提供「測試區域：所有區域（僅戰鬥中生效）」checkbox，預設不勾選。啟用後略過區域限制，但仍需總開關 ON、角色可用、正在戰鬥且 Buff 已勾選；關閉後立即回到已勾選絕境戰的限制。
+
+一般場景清單保留七個絕境戰：
 
 | 簡稱 | 內容 | Territory ID |
 |---|---|---|
@@ -34,7 +35,7 @@
 | FRU | Futures Rewritten (Ultimate) | 1238 |
 | UMAD | Dancing Mad (Ultimate) | 1363 |
 
-需要同時滿足總開關 ON、目前絕境戰已勾選、角色在戰鬥中且可用。戰鬥外不執行。預設 OFF，增益與場景全不勾選；設定自動保存。從舊版更新會清除已移出清單的 Buff 和一般場景勾選。
+未啟用測試區域時，需要同時滿足總開關 ON、目前絕境戰已勾選、角色在戰鬥中且可用。戰鬥外不執行。預設 OFF，增益與場景全不勾選；設定自動保存。從舊版更新會清除已移出清單的 Buff 和一般場景勾選。
 
 ## 安裝
 

@@ -7,8 +7,8 @@ static class CatalogTests
     { if (!value) throw new Exception(reason); count++; }
     public static int Run()
     {
-        Check(RaidCatalog.Buffs.Count == 13, "Exactly the screenshot raid buffs, including both attack cards");
-        Check(RaidCatalog.Buffs.Select(b => b.EnglishName).Distinct(StringComparer.OrdinalIgnoreCase).Count() == 13,
+        Check(RaidCatalog.Buffs.Count == 12, "Keep twelve raid-buff choices after removing Starry Muse");
+        Check(RaidCatalog.Buffs.Select(b => b.EnglishName).Distinct(StringComparer.OrdinalIgnoreCase).Count() == 12,
             "No duplicate named checkboxes");
         foreach (var b in RaidCatalog.Buffs)
         {
@@ -21,7 +21,8 @@ static class CatalogTests
         }
         Check(RaidCatalog.FindBuff(3887, "  the balance  ", true)?.Job.EndsWith("AST") == true, "Current Balance attack card");
         Check(RaidCatalog.FindBuff(3889, "the Spear", true)?.Job.EndsWith("AST") == true, "Current Spear attack card");
-        Check(RaidCatalog.FindBuff(3685, "Starry Muse", true)?.Job.EndsWith("PCT") == true, "Use the real Starry Muse name");
+        Check(RaidCatalog.FindBuff(3685, "Starry Muse", true) == null, "Starry Muse is removed from the cancellation catalogue");
+        Check(RaidCatalog.Buffs.All(b => b.Job.All(char.IsAscii)), "All job headers use English text");
         Check(RaidCatalog.FindBuff(3685, "Starry Mues", true) == null, "Do not use the macro typo");
         foreach (var old in new[] { (1338u, "The Balance"), (1414u, "Battle Litany"), (2034u, "Divination"),
             (2050u, "Technical Finish"), (2174u, "Brotherhood"), (2282u, "Embolden"), (2722u, "Radiant Finale"),
@@ -41,7 +42,7 @@ static class CatalogTests
             Check(RaidCatalog.FindUltimate(d.DutyId, d.TerritoryId + 1, 28) == null, "Reject mismatched territory");
         }
         Check(RaidCatalog.FindUltimate(0, 0, 28) == null, "Never accept a fallback territory");
-        var savedStatuses = new HashSet<uint> { 200, 201 };
+        var savedStatuses = new HashSet<uint> { 200, 201, 3685 };
         var savedAreas = new HashSet<uint> { 733, 101 };
         Check(RaidCatalog.RestrictSelections(savedStatuses, savedAreas,
             new HashSet<uint> { 200 }, new HashSet<uint> { 733 }), "Migrate old broad selections");

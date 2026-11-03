@@ -1,7 +1,7 @@
 namespace RaidBuffOff.Core;
 
 public enum GateReason { Off, LoggedOut, Unavailable, OutOfCombat, AreaNotSelected, NoBuffsSelected, Active }
-public sealed record RunContext(bool Enabled, bool LoggedIn, bool Ready, bool InCombat, uint TerritoryId, ulong CharacterId);
+public sealed record RunContext(bool Enabled, bool LoggedIn, bool Ready, bool InCombat, uint TerritoryId, ulong CharacterId, bool TestAllAreas = false);
 public readonly record struct BuffInstance(uint StatusId, uint SourceId, bool Beneficial = true, bool CanStatusOff = true)
 {
     public Cancellation Key => new(StatusId, SourceId == 0 ? 0xE0000000u : SourceId);
@@ -16,7 +16,7 @@ public static class RemovalPolicy
         if (!context.LoggedIn || context.CharacterId == 0) return GateReason.LoggedOut;
         if (!context.Ready) return GateReason.Unavailable;
         if (!context.InCombat) return GateReason.OutOfCombat;
-        if (context.TerritoryId == 0 || !areas.Contains(context.TerritoryId)) return GateReason.AreaNotSelected;
+        if (context.TerritoryId == 0 || (!context.TestAllAreas && !areas.Contains(context.TerritoryId))) return GateReason.AreaNotSelected;
         if (statuses.Count == 0) return GateReason.NoBuffsSelected;
         return GateReason.Active;
     }

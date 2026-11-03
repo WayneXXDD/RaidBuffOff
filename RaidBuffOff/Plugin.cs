@@ -85,7 +85,7 @@ public sealed class Plugin : IDalamudPlugin
         var eligibleTerritories = areas.Select(a => a.Id).ToHashSet();
         bool pruned = RaidCatalog.RestrictSelections(config.SelectedStatusIds, config.SelectedTerritoryIds,
             eligibleStatuses, eligibleTerritories);
-        if (config.Version < 2 || pruned) { config.Version = 2; Save(); }
+        if (config.Version < 3 || pruned) { config.Version = 3; Save(); }
         entry = dtr.Get("Raid Buff Off", Text("raidbuff: OFF"));
         entry.OnClick = OnDtrClick;
         entry.Shown = true;
@@ -126,7 +126,7 @@ public sealed class Plugin : IDalamudPlugin
             !condition[ConditionFlag.Unconscious] && !condition[ConditionFlag.OccupiedInCutSceneEvent] &&
             !condition[ConditionFlag.WatchingCutscene] && !condition[ConditionFlag.WatchingCutscene78];
         return new(config.Enabled, client.IsLoggedIn, ready, condition[ConditionFlag.InCombat],
-            client.TerritoryType, player.IsLoaded ? player.ContentId : 0);
+            client.TerritoryType, player.IsLoaded ? player.ContentId : 0, config.TestAllAreas);
     }
     private void Tick(IFramework _)
     {
@@ -184,20 +184,20 @@ public sealed class Plugin : IDalamudPlugin
     private static unsafe bool Cancel(Cancellation request) =>
         NativeStatusManager.ExecuteStatusOff(request.StatusId, request.SourceId);
 
-    private static string Reason(GateReason reason) => reason switch {
+    private string Reason(GateReason reason) => reason switch {
         GateReason.Off => "總開關已關閉",
         GateReason.LoggedOut => "等待登入角色",
         GateReason.Unavailable => "等待角色載入或恢復行動",
         GateReason.OutOfCombat => "戰鬥外，待命中",
         GateReason.AreaNotSelected => "目前場景未勾選，待命中",
         GateReason.NoBuffsSelected => "尚未勾選要取消的增益",
-        GateReason.Active => "生效中：目前為已勾選場景的戰鬥",
+        GateReason.Active => config.TestAllAreas ? "測試模式生效中：所有區域的戰鬥皆會生效" : "生效中：目前為已勾選場景的戰鬥",
         _ => ""
     };
     private void UpdateDtr(GateReason reason)
     {
         var text = config.Enabled ? "raidbuff: ON" : "raidbuff: OFF";
-        var tooltip = $"團隊增益取消\n左鍵：ON / OFF\n右鍵：詳細設定\n目前：{Reason(reason)}\n本次已取消：{removed}\n{lastAction}";
+        var tooltip = $"團隊增益取消\n左鍵：ON / OFF\n右鍵：詳細設定\n目前：{Reason(reason)}\n範圍：{(config.TestAllAreas ? "測試區域：所有區域" : "已勾選的絕境戰")}\n本次已取消：{removed}\n{lastAction}";
         if (text != lastDtrText) { entry.Text = Text(text); lastDtrText = text; }
         if (tooltip != lastDtrTooltip) { entry.Tooltip = Text(tooltip); lastDtrTooltip = tooltip; }
     }
@@ -214,7 +214,9 @@ public sealed class Plugin : IDalamudPlugin
                 if (ImGui.Checkbox("總開關 ON / OFF", ref enabled)) { config.Enabled = enabled; Save(); nextTick = 0; }
                 ImGui.SameLine(); ImGui.TextUnformatted($"本次已取消：{view.Removed}");
                 ImGui.TextWrapped(Reason(view.Reason));
-                ImGui.TextWrapped("只有總開關開啟、目前場景已勾選，而且角色正在戰鬥中，才會取消已勾選的增益。");
+                ImGui.TextWrapped(config.TestAllAreas
+                    ? "測試區域已勾選：總開關 ON 且在戰鬥中，就會在所有區域取消已勾選的增益。"
+                    : "只有總開關開啟、目前絕境戰已勾選，而且角色正在戰鬥中，才會取消已勾選的增益。");
                 if (view.LastAction.Length > 0) ImGui.TextWrapped(view.LastAction);
                 if (ImGui.BeginTabBar("settings"))
                 {
@@ -246,7 +248,8 @@ public sealed class Plugin : IDalamudPlugin
                 foreach (var job in visibleJobs)
                 {
                     ImGui.TableNextColumn();
-                    if (!ImGui.CollapsingHeader(job.Key, ImGuiTreeNodeFlags.DefaultOpen)) continue;
+                    ImGui.TextUnformatted(job.Key);
+                    ImGui.Separator();
                     foreach (var group in job)
                     {
                         bool selected = group.Ids.Any(config.SelectedStatusIds.Contains);
@@ -275,7 +278,16 @@ public sealed class Plugin : IDalamudPlugin
     }
     private void DrawAreas()
     {
-        ImGui.TextWrapped("只在以下已勾選絕境戰的戰鬥中生效。");
+        var testAllAreas = config.TestAllAreas;
+        if (ImGui.Checkbox("測試區域：所有區域（僅戰鬥中生效）", ref testAllAreas))
+        {
+            config.TestAllAreas = testAllAreas;
+            Save(); nextTick = 0;
+        }
+        ImGui.TextWrapped(config.TestAllAreas
+            ? "測試模式已開啟，所有區域都可在戰鬥中生效；仍需總開關 ON。"
+            : "只在以下已勾選絕境戰的戰鬥中生效。");
+        ImGui.Separator();
         ImGui.TextWrapped($"目前場景：{view.Area} [{view.Territory}]");
         foreach (var area in areas.OrderBy(a => a.Order))
         {

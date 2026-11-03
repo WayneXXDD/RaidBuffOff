@@ -6,19 +6,18 @@ public sealed record UltimateDefinition(uint DutyId, uint TerritoryId, string Co
 public static class RaidCatalog
 {
     public static IReadOnlyList<RaidBuffDefinition> Buffs { get; } = Array.AsReadOnly(new[] {
-        new RaidBuffDefinition("Divination", "占星術士 / AST", 0, 0, [1878]),
-        new RaidBuffDefinition("The Balance", "占星術士 / AST", 0, 1, [3887]),
-        new RaidBuffDefinition("The Spear", "占星術士 / AST", 0, 2, [3889]),
-        new RaidBuffDefinition("Brotherhood", "武僧 / MNK", 1, 0, [1185]),
-        new RaidBuffDefinition("Battle Litany", "龍騎士 / DRG", 2, 0, [786]),
+        new RaidBuffDefinition("Divination", "Astrologian / AST", 0, 0, [1878]),
+        new RaidBuffDefinition("The Balance", "Astrologian / AST", 0, 1, [3887]),
+        new RaidBuffDefinition("The Spear", "Astrologian / AST", 0, 2, [3889]),
+        new RaidBuffDefinition("Brotherhood", "Monk / MNK", 1, 0, [1185]),
+        new RaidBuffDefinition("Battle Litany", "Dragoon / DRG", 2, 0, [786]),
         new RaidBuffDefinition("Arcane Circle", "Reaper / RPR", 3, 0, [2599]),
-        new RaidBuffDefinition("Battle Voice", "吟遊詩人 / BRD", 4, 0, [141]),
-        new RaidBuffDefinition("Radiant Finale", "吟遊詩人 / BRD", 4, 1, [2964]),
-        new RaidBuffDefinition("Technical Finish", "舞者 / DNC", 5, 0, [1822]),
-        new RaidBuffDefinition("Devilment", "舞者 / DNC", 5, 1, [1825]),
-        new RaidBuffDefinition("Searing Light", "召喚師 / SMN", 6, 0, [2703]),
-        new RaidBuffDefinition("Embolden", "赤魔法師 / RDM", 7, 0, [1239, 1297]),
-        new RaidBuffDefinition("Starry Muse", "Pictomancer / PCT", 8, 0, [3685])
+        new RaidBuffDefinition("Battle Voice", "Bard / BRD", 4, 0, [141]),
+        new RaidBuffDefinition("Radiant Finale", "Bard / BRD", 4, 1, [2964]),
+        new RaidBuffDefinition("Technical Finish", "Dancer / DNC", 5, 0, [1822]),
+        new RaidBuffDefinition("Devilment", "Dancer / DNC", 5, 1, [1825]),
+        new RaidBuffDefinition("Searing Light", "Summoner / SMN", 6, 0, [2703]),
+        new RaidBuffDefinition("Embolden", "Red Mage / RDM", 7, 0, [1239, 1297]),
     });
     // Verified against Global ContentFinderCondition data. No general territory or future-duty fallback.
     public static IReadOnlyList<UltimateDefinition> Ultimates { get; } = Array.AsReadOnly(new[] {
