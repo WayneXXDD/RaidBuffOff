@@ -2,11 +2,11 @@
   "Author": "WayneXXDD",
   "Name": "Raid Buff Off (Wayne, Testing)",
   "InternalName": "RaidBuffOff",
-  "AssemblyVersion": "0.1.1.0",
+  "AssemblyVersion": "0.1.2.0",
   "DalamudApiLevel": 15,
   "ApplicableVersion": "any",
   "Punchline": "Cancel selected buffs during combat in selected areas.",
-  "Description": "Global client. Cancel selected raid buffs only in checked Ultimate raids during combat. Job-grouped checkbox list uses current PvE status IDs and includes AST's The Balance and The Spear. Seven Ultimate areas only. DTR raidbuff: left-click ON/OFF, right-click settings. Open /rbo. Defaults OFF with empty selections.",
+  "Description": "Global client. Cancel selected raid buffs only in checked Ultimate raids during combat. Three-column job-grouped checkbox list uses current PvE status IDs and includes AST's The Balance and The Spear. Seven Ultimate areas only. DTR raidbuff: left-click ON/OFF, right-click settings. Open /rbo. Defaults OFF with empty selections.",
   "RepoUrl": "https://github.com/WayneXXDD/RaidBuffOff",
   "LoadSync": false,
   "CanUnloadAsync": false,
@@ -16,7 +16,7 @@
     "dtr"
   ],
   "IsTestingExclusive": true,
-  "TestingAssemblyVersion": "0.1.1.0",
+  "TestingAssemblyVersion": "0.1.2.0",
   "TestingDalamudApiLevel": 15,
-  "Changelog": "0.1.1.0: DTR text is raidbuff. Seven Ultimate areas only. Remove the all-buff selector and group the screenshot raid-buff list by job, including AST's current attack cards The Balance and The Spear. Correct the original CanStatusOff-only filter by using verified PvE status IDs, excluding old/PvP namesakes. The game validates cancellation requests. Prune obsolete selections on upgrade."
+  "Changelog": "0.1.2.0: Arrange raid-buff checkboxes as three jobs per row. Remove the show-current-buffs and show-selected-only filters. Keep search, job collapse controls, and checkbox selections."
 }

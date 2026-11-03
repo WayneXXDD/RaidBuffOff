@@ -39,7 +39,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly List<AreaOption> areas = [];
     private readonly Dictionary<uint, string> areaNames = [];
     private volatile View view = new(0, "", [], GateReason.Off, 0, "");
-    private bool showSettings = true, onlyPresent, onlySelectedBuffs;
+    private bool showSettings = true;
     private volatile bool disposed;
     private string buffSearch = "", lastAction = "";
     private string lastDtrText = "", lastDtrTooltip = "";
@@ -230,43 +230,46 @@ public sealed class Plugin : IDalamudPlugin
     {
         ImGui.TextWrapped("依職業勾選要取消的團隊增益。");
         ImGui.InputTextWithHint("搜尋增益", "名稱、英文名稱或狀態 ID", ref buffSearch, 160);
-        ImGui.Checkbox("只顯示目前身上的增益", ref onlyPresent);
-        ImGui.SameLine(); ImGui.Checkbox("只顯示已勾選", ref onlySelectedBuffs);
         ImGui.TextWrapped("同名增益集中為一個勾選項目。可將滑鼠移到名稱上查看說明與狀態 ID。");
+        var visibleJobs = groups.Where(group => buffSearch.Length == 0 ||
+            group.Name.Contains(buffSearch, StringComparison.OrdinalIgnoreCase) ||
+            group.English.Contains(buffSearch, StringComparison.OrdinalIgnoreCase) ||
+            group.Ids.Any(id => id.ToString().Contains(buffSearch)))
+            .GroupBy(group => group.Definition.Job).ToArray();
         if (ImGui.BeginChild("buff-list", new Vector2(0, 0), true))
         {
-            int shown = 0;
-            foreach (var job in groups.GroupBy(g => g.Definition.Job))
+            if (visibleJobs.Length == 0)
+                ImGui.TextWrapped("沒有符合的團隊增益，請清除搜尋條件。");
+            else if (ImGui.BeginTable("buff-job-grid", 3,
+                ImGuiTableFlags.SizingStretchSame | ImGuiTableFlags.BordersInnerV))
             {
-                if (!ImGui.CollapsingHeader(job.Key, ImGuiTreeNodeFlags.DefaultOpen)) continue;
-                foreach (var group in job)
+                foreach (var job in visibleJobs)
                 {
-                    if (onlyPresent && !group.Ids.Any(view.Present.Contains)) continue;
-                    bool selected = group.Ids.Any(config.SelectedStatusIds.Contains);
-                    if (onlySelectedBuffs && !selected) continue;
-                    if (buffSearch.Length > 0 && !group.Name.Contains(buffSearch, StringComparison.OrdinalIgnoreCase) &&
-                        !group.English.Contains(buffSearch, StringComparison.OrdinalIgnoreCase) &&
-                        !group.Ids.Any(id => id.ToString().Contains(buffSearch))) continue;
-                    shown++;
-                    var label = group.Name;
-                    if (group.Name != group.English) label += $" / {group.English}";
-                    if (group.Ids.Any(view.Present.Contains)) label += "（身上有）";
-                    if (ImGui.Checkbox($"{label}##buff{group.Ids[0]}", ref selected))
+                    ImGui.TableNextColumn();
+                    if (!ImGui.CollapsingHeader(job.Key, ImGuiTreeNodeFlags.DefaultOpen)) continue;
+                    foreach (var group in job)
                     {
-                        foreach (uint id in group.Ids)
-                            if (selected) config.SelectedStatusIds.Add(id); else config.SelectedStatusIds.Remove(id);
-                        Save(); nextTick = 0;
-                    }
-                    if (ImGui.IsItemHovered())
-                    {
-                        ImGui.BeginTooltip();
-                        ImGui.TextWrapped(group.Description);
-                        ImGui.TextUnformatted("Status ID: " + string.Join(", ", group.Ids));
-                        ImGui.EndTooltip();
+                        bool selected = group.Ids.Any(config.SelectedStatusIds.Contains);
+                        var label = group.Name;
+                        if (group.Name != group.English) label += $" / {group.English}";
+                        if (group.Ids.Any(view.Present.Contains)) label += "（身上有）";
+                        if (ImGui.Checkbox($"{label}##buff{group.Ids[0]}", ref selected))
+                        {
+                            foreach (uint id in group.Ids)
+                                if (selected) config.SelectedStatusIds.Add(id); else config.SelectedStatusIds.Remove(id);
+                            Save(); nextTick = 0;
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.TextWrapped(group.Description);
+                            ImGui.TextUnformatted("Status ID: " + string.Join(", ", group.Ids));
+                            ImGui.EndTooltip();
+                        }
                     }
                 }
+                ImGui.EndTable();
             }
-            if (shown == 0) ImGui.TextWrapped("沒有符合的團隊增益，請清除搜尋或顯示條件。");
         }
         ImGui.EndChild();
     }
