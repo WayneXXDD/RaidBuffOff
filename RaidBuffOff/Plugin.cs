@@ -17,9 +17,9 @@ namespace RaidBuffOff;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    private sealed record BuffOption(uint Id, string Name, string English, string Description, bool Raid);
-    private sealed record BuffGroup(string Name, string English, string Description, uint[] Ids, bool Raid);
-    private sealed record AreaOption(uint Id, string Name);
+    private sealed record BuffOption(uint Id, string Name, string English, string Description, RaidBuffDefinition Definition);
+    private sealed record BuffGroup(string Name, string English, string Description, uint[] Ids, RaidBuffDefinition Definition);
+    private sealed record AreaOption(uint Id, string Name, int Order);
     private sealed record View(uint Territory, string Area, uint[] Present, GateReason Reason,
         int Removed, string LastAction);
     private readonly IDalamudPluginInterface pi;
@@ -39,18 +39,13 @@ public sealed class Plugin : IDalamudPlugin
     private readonly List<AreaOption> areas = [];
     private readonly Dictionary<uint, string> areaNames = [];
     private volatile View view = new(0, "", [], GateReason.Off, 0, "");
-    private bool showSettings = true, disposed, onlyPresent, onlySelectedBuffs, onlySelectedAreas;
-    private string buffSearch = "", areaSearch = "", lastAction = "";
+    private bool showSettings = true, onlyPresent, onlySelectedBuffs;
+    private volatile bool disposed;
+    private string buffSearch = "", lastAction = "";
     private string lastDtrText = "", lastDtrTooltip = "";
-    private int listMode, pendingToggles, pendingSwitch, removed;
+    private int pendingToggles, pendingSwitch, removed;
     private double nextTick;
     private static double Now => Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency;
-    private static readonly HashSet<string> RaidNames = new(StringComparer.OrdinalIgnoreCase) {
-        "Battle Litany", "Battle Voice", "Radiant Finale", "Brotherhood", "Meditative Brotherhood",
-        "Divination", "Embolden", "Arcane Circle", "Searing Light", "Technical Finish", "Standard Finish",
-        "Devilment", "Starry Muse", "The Balance", "The Spear", "The Arrow", "The Bole", "The Ewer",
-        "The Spire", "The Wanderer's Minuet", "Mage's Ballad", "Army's Paeon"
-    };
 
     public Plugin(IDalamudPluginInterface pi, IFramework framework, IClientState client, IPlayerState player,
         IObjectTable objects, ICondition condition, ICommandManager commands, IPluginLog log, IDataManager data, IDtrBar dtr)
@@ -66,27 +61,32 @@ public sealed class Plugin : IDalamudPlugin
             var name = row.Name.ToString();
             if (string.IsNullOrWhiteSpace(name)) continue;
             var en = english.TryGetRow(row.RowId, out var eng) ? eng.Name.ToString() : name;
-            buffs.Add(row.RowId, new(row.RowId, name, en, row.Description.ToString(), RaidNames.Contains(en)));
+            var definition = RaidCatalog.FindBuff(en, row.StatusCategory == 1, row.CanStatusOff);
+            if (definition == null) continue;
+            buffs.Add(row.RowId, new(row.RowId, name, en, row.Description.ToString(), definition));
         }
         foreach (var group in buffs.Values.GroupBy(b => (b.Name, b.English)))
             groups.Add(new(group.Key.Name, group.Key.English, group.First().Description,
-                group.Select(b => b.Id).Order().ToArray(), group.Any(b => b.Raid)));
-        groups.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
-        var dutyNames = data.GetExcelSheet<ContentFinderCondition>()
-            .Where(r => r.TerritoryType.RowId != 0 && !string.IsNullOrWhiteSpace(r.Name.ToString()))
-            .GroupBy(r => r.TerritoryType.RowId)
-            .ToDictionary(g => g.Key, g => string.Join(" / ", g.Select(r => r.Name.ToString()).Distinct()));
-        var placeNames = data.GetExcelSheet<PlaceName>();
-        foreach (var row in data.GetExcelSheet<TerritoryType>())
+                group.Select(b => b.Id).Order().ToArray(), group.First().Definition));
+        groups.Sort((a, b) => a.Definition.JobOrder != b.Definition.JobOrder
+            ? a.Definition.JobOrder.CompareTo(b.Definition.JobOrder)
+            : a.Definition.BuffOrder.CompareTo(b.Definition.BuffOrder));
+        var duties = data.GetExcelSheet<ContentFinderCondition>();
+        foreach (var definition in RaidCatalog.Ultimates)
         {
-            if (row.RowId == 0) continue;
-            var place = placeNames.TryGetRow(row.PlaceName.RowId, out var placeRow) ? placeRow.Name.ToString() : "";
-            var name = dutyNames.TryGetValue(row.RowId, out var duty) ? duty : place;
-            if (string.IsNullOrWhiteSpace(name)) continue;
-            areas.Add(new(row.RowId, name)); areaNames[row.RowId] = name;
+            if (!duties.TryGetRow(definition.DutyId, out var duty) ||
+                RaidCatalog.FindUltimate(duty.RowId, duty.TerritoryType.RowId, duty.ContentType.RowId) == null)
+                continue;
+            var name = $"{definition.Code} — {duty.Name}";
+            areas.Add(new(definition.TerritoryId, name, areas.Count));
+            areaNames[definition.TerritoryId] = name;
         }
-        areas.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
-        entry = dtr.Get("Raid Buff Off", Text("BuffOff: OFF"));
+        var eligibleStatuses = buffs.Keys.ToHashSet();
+        var eligibleTerritories = areas.Select(a => a.Id).ToHashSet();
+        bool pruned = RaidCatalog.RestrictSelections(config.SelectedStatusIds, config.SelectedTerritoryIds,
+            eligibleStatuses, eligibleTerritories);
+        if (config.Version < 2 || pruned) { config.Version = 2; Save(); }
+        entry = dtr.Get("Raid Buff Off", Text("raidbuff: OFF"));
         entry.OnClick = OnDtrClick;
         entry.Shown = true;
         commands.AddHandler("/rbo", new CommandInfo(OnCommand) {
@@ -196,7 +196,7 @@ public sealed class Plugin : IDalamudPlugin
     };
     private void UpdateDtr(GateReason reason)
     {
-        var text = config.Enabled ? "BuffOff: ON" : "BuffOff: OFF";
+        var text = config.Enabled ? "raidbuff: ON" : "raidbuff: OFF";
         var tooltip = $"團隊增益取消\n左鍵：ON / OFF\n右鍵：詳細設定\n目前：{Reason(reason)}\n本次已取消：{removed}\n{lastAction}";
         if (text != lastDtrText) { entry.Text = Text(text); lastDtrText = text; }
         if (tooltip != lastDtrTooltip) { entry.Tooltip = Text(tooltip); lastDtrTooltip = tooltip; }
@@ -228,7 +228,7 @@ public sealed class Plugin : IDalamudPlugin
     }
     private void DrawBuffs()
     {
-        ImGui.Combo("清單", ref listMode, new[] { "團隊增益", "所有可自行取消的增益" }, 2);
+        ImGui.TextWrapped("依職業勾選要取消的團隊增益；只列出遊戲允許自行取消的項目。");
         ImGui.InputTextWithHint("搜尋增益", "名稱、英文名稱或狀態 ID", ref buffSearch, 160);
         ImGui.Checkbox("只顯示目前身上的增益", ref onlyPresent);
         ImGui.SameLine(); ImGui.Checkbox("只顯示已勾選", ref onlySelectedBuffs);
@@ -236,67 +236,55 @@ public sealed class Plugin : IDalamudPlugin
         if (ImGui.BeginChild("buff-list", new Vector2(0, 0), true))
         {
             int shown = 0;
-            foreach (var group in groups)
+            foreach (var job in groups.GroupBy(g => g.Definition.Job))
             {
-                if (listMode == 0 && !group.Raid) continue;
-                if (onlyPresent && !group.Ids.Any(view.Present.Contains)) continue;
-                bool selected = group.Ids.Any(config.SelectedStatusIds.Contains);
-                if (onlySelectedBuffs && !selected) continue;
-                if (buffSearch.Length > 0 && !group.Name.Contains(buffSearch, StringComparison.OrdinalIgnoreCase) &&
-                    !group.English.Contains(buffSearch, StringComparison.OrdinalIgnoreCase) &&
-                    !group.Ids.Any(id => id.ToString().Contains(buffSearch))) continue;
-                shown++;
-                var label = group.Name;
-                if (group.Name != group.English) label += $" / {group.English}";
-                if (group.Ids.Any(view.Present.Contains)) label += "（身上有）";
-                if (ImGui.Checkbox($"{label}##buff{group.Ids[0]}", ref selected))
+                if (!ImGui.CollapsingHeader(job.Key, ImGuiTreeNodeFlags.DefaultOpen)) continue;
+                foreach (var group in job)
                 {
-                    foreach (uint id in group.Ids)
-                        if (selected) config.SelectedStatusIds.Add(id); else config.SelectedStatusIds.Remove(id);
-                    Save(); nextTick = 0;
-                }
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.BeginTooltip();
-                    ImGui.TextWrapped(group.Description);
-                    ImGui.TextUnformatted("Status ID: " + string.Join(", ", group.Ids));
-                    ImGui.EndTooltip();
-                }
+                    if (onlyPresent && !group.Ids.Any(view.Present.Contains)) continue;
+                    bool selected = group.Ids.Any(config.SelectedStatusIds.Contains);
+                    if (onlySelectedBuffs && !selected) continue;
+                    if (buffSearch.Length > 0 && !group.Name.Contains(buffSearch, StringComparison.OrdinalIgnoreCase) &&
+                        !group.English.Contains(buffSearch, StringComparison.OrdinalIgnoreCase) &&
+                        !group.Ids.Any(id => id.ToString().Contains(buffSearch))) continue;
+                    shown++;
+                    var label = group.Name;
+                    if (group.Name != group.English) label += $" / {group.English}";
+                    if (group.Ids.Any(view.Present.Contains)) label += "（身上有）";
+                    if (ImGui.Checkbox($"{label}##buff{group.Ids[0]}", ref selected))
+                    {
+                        foreach (uint id in group.Ids)
+                            if (selected) config.SelectedStatusIds.Add(id); else config.SelectedStatusIds.Remove(id);
+                        Save(); nextTick = 0;
+                    }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.TextWrapped(group.Description);
+                        ImGui.TextUnformatted("Status ID: " + string.Join(", ", group.Ids));
+                        ImGui.EndTooltip();
+                    }
             }
-            if (shown == 0) ImGui.TextWrapped("沒有符合的增益。可切換「所有可自行取消的增益」或清除搜尋條件。");
+            }
+            if (shown == 0) ImGui.TextWrapped("沒有符合的團隊增益，請清除搜尋或顯示條件。");
         }
         ImGui.EndChild();
     }
     private void DrawAreas()
     {
+        ImGui.TextWrapped("只在以下已勾選絕境戰的戰鬥中生效。");
         ImGui.TextWrapped($"目前場景：{view.Area} [{view.Territory}]");
-        if (view.Territory != 0)
+        foreach (var area in areas.OrderBy(a => a.Order))
         {
-            bool current = config.SelectedTerritoryIds.Contains(view.Territory);
-            if (ImGui.Checkbox("在目前場景的戰鬥中生效", ref current))
+            bool selected = config.SelectedTerritoryIds.Contains(area.Id);
+            if (ImGui.Checkbox($"{area.Name}##area{area.Id}", ref selected))
             {
-                if (current) config.SelectedTerritoryIds.Add(view.Territory); else config.SelectedTerritoryIds.Remove(view.Territory);
+                if (selected) config.SelectedTerritoryIds.Add(area.Id); else config.SelectedTerritoryIds.Remove(area.Id);
                 Save(); nextTick = 0;
             }
         }
-        ImGui.InputTextWithHint("搜尋場景", "副本、區域名稱或場景 ID", ref areaSearch, 160);
-        ImGui.Checkbox("只顯示已勾選場景", ref onlySelectedAreas);
-        if (ImGui.BeginChild("area-list", new Vector2(0, 0), true))
-        {
-            foreach (var area in areas)
-            {
-                bool selected = config.SelectedTerritoryIds.Contains(area.Id);
-                if (onlySelectedAreas && !selected) continue;
-                if (areaSearch.Length > 0 && !area.Name.Contains(areaSearch, StringComparison.OrdinalIgnoreCase) &&
-                    !area.Id.ToString().Contains(areaSearch)) continue;
-                if (ImGui.Checkbox($"{area.Name} [{area.Id}]##area{area.Id}", ref selected))
-                {
-                    if (selected) config.SelectedTerritoryIds.Add(area.Id); else config.SelectedTerritoryIds.Remove(area.Id);
-                    Save(); nextTick = 0;
-                }
-            }
-        }
-        ImGui.EndChild();
+        if (areas.Count != 7)
+            ImGui.TextWrapped($"目前遊戲資料已讀取 {areas.Count}/7 個絕境戰；未讀取的內容不會啟用。");
     }
     public void Dispose()
     {

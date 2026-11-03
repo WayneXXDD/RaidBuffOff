@@ -9,7 +9,7 @@ static class Tests
     private static readonly BuffInstance Buff = new(200, 123);
     private static void Check(bool ok, string reason)
     { if (!ok) throw new Exception(reason); count++; }
-    public static void Main()
+    public static void Main(string[] args)
     {
         // Every combination of the six independent activation requirements.
         for (int mask = 0; mask < 64; mask++)
@@ -78,6 +78,11 @@ static class Tests
         Check(p.Plan(Active, new HashSet<uint>(), Selected, [Buff], 0.4).Count == 0, "Unchecking all areas blocks removal");
         Check(p.Plan(Active with { Ready = false }, Areas, Selected, [Buff], 0.5).Count == 0, "Loading, death and cutscenes block removal");
         Check(p.Plan(Active, Areas, Selected, [], 0.6).Count == 0, "Do nothing when the selected buff is absent");
-        Console.WriteLine($"PASS: {count} assertions covering activation gates, selections, source IDs and throttling.");
+        count += CatalogTests.Run();
+        if (args.Length == 2 && args[0] == "--catalog-output")
+            File.WriteAllText(args[1], System.Text.Json.JsonSerializer.Serialize(new {
+                Buffs = RaidCatalog.Buffs, Ultimates = RaidCatalog.Ultimates
+            }));
+        Console.WriteLine($"PASS: {count} assertions covering activation gates, catalogue scope, selections, source IDs and throttling.");
     }
 }

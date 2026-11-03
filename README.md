@@ -1,50 +1,55 @@
 # Raid Buff Off
 
-國際服 Dalamud API 15 的獨立插件，用來自動取消自己身上已勾選的增益。
-
-## 生效條件
-
-三個條件必須同時成立：
-
-1. 總開關為 ON。
-2. 目前副本／區域已在「生效場景」勾選。
-3. 角色正在戰鬥中，且已載入、存活並未處於過場。
-
-預設 OFF，Buff 與場景清單都不勾選。設定會自動保存。ON 代表功能已啟用，戰鬥外或不在所選場景時仍會待命。
+國際服 Dalamud API 15 插件，僅在已勾選絕境戰的戰鬥中，取消自己身上已勾選、可自行取消的團隊增益。
 
 ## DTR bar
 
-- 顯示 BuffOff: ON / BuffOff: OFF。
-- 左鍵切換 ON／OFF。
-- 右鍵直接開啟詳細設定。
-- 滑鼠提示顯示目前是生效中或待命，以及最近取消的增益。
+顯示 raidbuff: ON / raidbuff: OFF。左鍵切換總開關，右鍵開啟詳細設定。ON 代表已啟用，未進入已勾選絕境戰的戰鬥時保持待命。
 
-## 設定
+## 職業增益清單
 
-輸入 /rbo，或在 DTR 項目上按右鍵。
+- 占星術士 AST：Divination、The Balance、The Spear。
+- 武僧 MNK：Brotherhood。
+- 龍騎士 DRG：Battle Litany。
+- Reaper RPR：Arcane Circle。
+- 吟遊詩人 BRD：Battle Voice、Radiant Finale。
+- 舞者 DNC：Technical Finish、Devilment。
+- 召喚師 SMN：Searing Light。
+- 赤魔法師 RDM：Embolden。
+- Pictomancer PCT：Starry Muse。
 
-「要移除的增益」：以 checkbox 選擇。預設顯示常見團隊增益；可切換「所有可自行取消的增益」，並搜尋名稱、英文名稱或狀態 ID。也可以只顯示目前身上有的或已勾選的增益。同名版本集中為一個勾選項目；滑鼠提示顯示所有狀態 ID。
+各職業分組以 checkbox 勾選；同名版本集中在一個勾選項目。清單由遊戲資料再次過濾，只保留正面且 CanStatusOff 的版本。沒有「所有增益」選項。圖片巨集中 Starry Mues 的拼字以正式名稱 Starry Muse 為準。
 
-「生效場景」：搜尋副本／區域或場景 ID，以 checkbox 勾選；也可以直接勾選「在目前場景的戰鬥中生效」。
+## 生效場景
 
-清單只顯示遊戲資料標記為可自行取消的正面增益。插件只針對本機角色自己的狀態，使用遊戲的 ExecuteStatusOff 操作，保留遊戲對取消資格的檢查；不直接刪除狀態記憶體。
+場景清單僅保留七個絕境戰：
+
+| 簡稱 | 內容 | Territory ID |
+|---|---|---|
+| UCOB | The Unending Coil of Bahamut (Ultimate) | 733 |
+| UWU | The Weapon's Refrain (Ultimate) | 777 |
+| TEA | The Epic of Alexander (Ultimate) | 887 |
+| DSR | Dragonsong's Reprise (Ultimate) | 968 |
+| TOP | The Omega Protocol (Ultimate) | 1122 |
+| FRU | Futures Rewritten (Ultimate) | 1238 |
+| UMAD | Dancing Mad (Ultimate) | 1363 |
+
+需要同時滿足總開關 ON、目前絕境戰已勾選、角色在戰鬥中且可用。戰鬥外不執行。預設 OFF，增益與場景全不勾選；設定自動保存。從舊版更新會清除已移出清單的 Buff 和一般場景勾選。
 
 ## 安裝
 
-在 Dalamud 自訂庫加入：
+自訂插件庫：
 
 ```text
 https://raw.githubusercontent.com/WayneXXDD/DalamudPlugins/main/pluginmaster.json
 ```
 
-本插件先以 Testing 測試版發布。開啟 Get plugin testing builds，刷新插件清單並搜尋 Raid Buff Off。
+開啟 Get plugin testing builds，刷新並搜尋 Raid Buff Off。輸入 /rbo 或在 DTR 上按右鍵開設定。也支援 /rbo on、/rbo off、/rbo toggle。
 
-指令：/rbo 開設定；/rbo on、/rbo off、/rbo toggle 切換總開關。
+## 驗證與發布
 
-## 建置與發布
+GitHub Actions 執行生效條件、清單範圍、舊設定遷移及頻率限制測試，並使用 [Global 遊戲資料](https://github.com/xivapi/ffxiv-datamining/tree/master/csv/en) 驗證可取消增益和七個絕境戰對照。編譯後檢查 ZIP 並發布到 plugin-repo 分支。
 
-GitHub Actions 執行純核心測試、使用國際服 Dalamud API 15 編譯、驗證 ZIP 內容與版本，再發布到 plugin-repo 分支。下載檔與中央插件庫自動同步；本機不需要保存開發專案。
+使用遊戲 ExecuteStatusOff 操作，只取消自己的狀態，不直接刪除狀態記憶體。編譯和資料驗證不能取代遊戲內確認，先以 Testing 測試版發布。
 
-測試驗證生效條件、勾選清單、來源 ID 和取消頻率。DTR 互動與實際取消效果仍需遊戲內確認。
-
-MIT 授權，詳見 LICENSE。
+MIT，詳見 LICENSE。

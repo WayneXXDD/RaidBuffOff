@@ -2,11 +2,11 @@
   "Author": "WayneXXDD",
   "Name": "Raid Buff Off (Wayne, Testing)",
   "InternalName": "RaidBuffOff",
-  "AssemblyVersion": "0.1.0.0",
+  "AssemblyVersion": "0.1.1.0",
   "DalamudApiLevel": 15,
   "ApplicableVersion": "any",
   "Punchline": "Cancel selected buffs during combat in selected areas.",
-  "Description": "Global client. Checkbox lists select cancellable buffs and duty/territory allowlists. Buffs are cancelled only while enabled, in a selected area, and in combat. DTR left-click toggles ON/OFF; right-click opens settings. Defaults to OFF with empty selections. Uses the game's status-off path. Open /rbo.",
+  "Description": "Global client. Cancel selected, manually cancellable raid buffs only in checked Ultimate raids during combat. Job-grouped buff checkboxes include AST's The Balance and The Spear. Seven Ultimate areas only. DTR raidbuff: left-click ON/OFF, right-click settings. Open /rbo. Defaults OFF with empty selections.",
   "RepoUrl": "https://github.com/WayneXXDD/RaidBuffOff",
   "LoadSync": false,
   "CanUnloadAsync": false,
@@ -16,7 +16,7 @@
     "dtr"
   ],
   "IsTestingExclusive": true,
-  "TestingAssemblyVersion": "0.1.0.0",
+  "TestingAssemblyVersion": "0.1.1.0",
   "TestingDalamudApiLevel": 15,
-  "Changelog": "0.1.0.0: Initial testing release with DTR left-click ON/OFF, right-click settings, buff checkboxes, area allowlists and combat-only cancellation. Requires in-game testing."
+  "Changelog": "0.1.1.0: Rename DTR text to raidbuff. Restrict areas to the seven Ultimates. Remove the all-buff selector and group the screenshot-based raid-buff list by job, including AST's The Balance and The Spear. Keep only beneficial statuses marked CanStatusOff by the game. Prune obsolete buff and area selections on upgrade."
 }

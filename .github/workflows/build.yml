@@ -34,8 +34,12 @@ jobs:
       - name: Test removal policy
         shell: pwsh
         run: |
-          dotnet run --project RaidBuffOff/tests/RaidBuffOff.Core.Tests.csproj -c Release -p:NuGetAudit=false
+          dotnet run --project RaidBuffOff/tests/RaidBuffOff.Core.Tests.csproj -c Release -p:NuGetAudit=false -- --catalog-output "$env:RUNNER_TEMP/raid-catalog.json"
           if ($LASTEXITCODE -ne 0) { throw 'Buff removal policy tests failed.' }
+      - name: Validate catalogue against Global game data
+        shell: pwsh
+        run: |
+          & ./.github/scripts/Validate-Catalog.ps1 -CatalogPath "$env:RUNNER_TEMP/raid-catalog.json"
       - name: Download Global Dalamud libraries
         shell: pwsh
         run: |
