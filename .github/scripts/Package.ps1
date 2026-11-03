@@ -11,16 +11,17 @@ $manifest = Get-Content -LiteralPath (Join-Path $release 'RaidBuffOff.json') -Ra
 $version = [Reflection.AssemblyName]::GetAssemblyName((Join-Path $release 'RaidBuffOff.dll')).Version.ToString()
 if ([version]$version -le [version]'0.0.0.0') { throw 'Invalid plugin version.' }
 $raw = 'https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo'
-$manifest.Name = 'Raid Buff Off (Wayne, Testing)'
+$manifest.Name = 'Raid Buff Off (Wayne)'
 $manifest.AssemblyVersion = $version
-$manifest.TestingAssemblyVersion = $version
+[void]$manifest.Remove('TestingAssemblyVersion')
 $manifest.DalamudApiLevel = $api
-$manifest.TestingDalamudApiLevel = $api
+[void]$manifest.Remove('TestingDalamudApiLevel')
+[void]$manifest.Remove('DownloadLinkTesting')
 $manifest.RepoUrl = 'https://github.com/WayneXXDD/RaidBuffOff'
-$manifest.IsTestingExclusive = $true
+$manifest.IsTestingExclusive = $false
 $manifest.IsHide = $false
 $manifest.LastUpdate = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-foreach ($key in @('DownloadLinkInstall','DownloadLinkUpdate','DownloadLinkTesting')) { $manifest[$key] = "$raw/plugins/RaidBuffOff/latest.zip" }
+foreach ($key in @('DownloadLinkInstall','DownloadLinkUpdate')) { $manifest[$key] = "$raw/plugins/RaidBuffOff/latest.zip" }
 $pluginDirectory = Join-Path $output 'plugins/RaidBuffOff'
 $stage = Join-Path ([IO.Path]::GetDirectoryName($output)) ('rbo-package-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $pluginDirectory,$stage,(Join-Path $stage 'licenses') -Force | Out-Null
@@ -45,9 +46,13 @@ try {
         $reader = [IO.StreamReader]::new($archive.GetEntry('RaidBuffOff.json').Open())
         try { $inside = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
         if ($inside.AssemblyVersion -ne $version -or $inside.InternalName -ne 'RaidBuffOff') { throw 'Package manifest mismatch.' }
+        if ($inside.IsTestingExclusive -or $inside.Name -match 'Testing' -or
+            @($inside.PSObject.Properties.Name | Where-Object { $_ -in @('TestingAssemblyVersion','TestingDalamudApiLevel','DownloadLinkTesting') }).Count -ne 0) {
+            throw 'Stable package contains testing-channel metadata.'
+        }
     } finally { $archive.Dispose() }
     [IO.File]::WriteAllText((Join-Path $output 'build-manifest.json'),(ConvertTo-Json -InputObject @($manifest) -Depth 20) + "`n",$utf8)
-    [IO.File]::WriteAllText((Join-Path $output 'README.md'),"Raid Buff Off testing distribution. Install through https://raw.githubusercontent.com/WayneXXDD/DalamudPlugins/main/pluginmaster.json . Source: https://github.com/WayneXXDD/RaidBuffOff . Enable Get plugin testing builds in Dalamud settings.",$utf8)
+    [IO.File]::WriteAllText((Join-Path $output 'README.md'),"Raid Buff Off stable distribution. Install through https://raw.githubusercontent.com/WayneXXDD/DalamudPlugins/main/pluginmaster.json . Source: https://github.com/WayneXXDD/RaidBuffOff . No plugin testing opt-in is required.",$utf8)
 } finally {
     $resolved = (Resolve-Path -LiteralPath $stage).ProviderPath
     $expected = [IO.Path]::GetFullPath($stage)

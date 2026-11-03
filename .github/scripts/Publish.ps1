@@ -8,7 +8,7 @@ if ($root -ne $workspace -or (Get-Item -LiteralPath $root -Force).Attributes -ba
 $feed = (Resolve-Path -LiteralPath $FeedDirectory).ProviderPath
 if ($feed -eq $root -or $feed.StartsWith($root + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'Feed must be outside the source checkout.' }
 $entries = @(Get-Content -LiteralPath (Join-Path $feed 'build-manifest.json') -Raw | ConvertFrom-Json)
-if ($entries.Count -ne 1 -or $entries[0].InternalName -ne 'RaidBuffOff' -or -not $entries[0].IsTestingExclusive) { throw 'Expected one testing plugin.' }
+if ($entries.Count -ne 1 -or $entries[0].InternalName -ne 'RaidBuffOff' -or $entries[0].IsTestingExclusive) { throw 'Expected one stable plugin.' }
 function RepoGit([string[]]$Arguments) {
     & git -C $root @Arguments
     if ($LASTEXITCODE -ne 0) { throw "Git failed: $($Arguments[0])" }
@@ -39,5 +39,5 @@ RepoGit @('add','--all')
 & git -C $root diff --cached --quiet
 if ($LASTEXITCODE -eq 0) { Write-Output 'Distribution is already current.'; exit 0 }
 if ($LASTEXITCODE -ne 1) { throw 'Cannot inspect staged changes.' }
-RepoGit @('commit','-m','Publish Raid Buff Off testing build')
+RepoGit @('commit','-m','Publish Raid Buff Off stable release')
 RepoGit @('push','origin','HEAD:refs/heads/plugin-repo')

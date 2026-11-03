@@ -58,7 +58,7 @@ jobs:
         run: |
           dotnet build RaidBuffOff/RaidBuffOff.csproj -c Release "-p:DalamudLibPath=$env:DALAMUD_LIB_PATH/" -p:NuGetAudit=false
           if ($LASTEXITCODE -ne 0) { throw 'Plugin build failed.' }
-      - name: Package and verify testing plugin
+      - name: Package and verify stable plugin
         shell: pwsh
         run: |
           & ./.github/scripts/Package.ps1 -SourceCheckout $env:GITHUB_WORKSPACE -OutputDirectory "$env:RUNNER_TEMP/buff-off-feed" -DalamudDirectory $env:DALAMUD_LIB_PATH

@@ -45,12 +45,12 @@
 https://raw.githubusercontent.com/WayneXXDD/DalamudPlugins/main/pluginmaster.json
 ```
 
-開啟 Get plugin testing builds，刷新並搜尋 Raid Buff Off。輸入 /rbo 或在 DTR 上按右鍵開設定。也支援 /rbo on、/rbo off、/rbo toggle。
+本插件為正式版，不需要開啟 Get plugin testing builds。刷新插件清單並搜尋 Raid Buff Off 即可安裝或更新。輸入 /rbo 或在 DTR 上按右鍵開設定。也支援 /rbo on、/rbo off、/rbo toggle。
 
 ## 驗證與發布
 
 GitHub Actions 執行生效條件、清單範圍、舊設定遷移及頻率限制測試，並使用 [Global 遊戲資料](https://github.com/xivapi/ffxiv-datamining/tree/master/csv/en) 驗證 PvE 狀態 ID／名稱與七個絕境戰對照。編譯後檢查 ZIP 並發布到 plugin-repo 分支。
 
-使用遊戲 ExecuteStatusOff 操作，只取消自己的狀態，不直接刪除狀態記憶體。編譯和資料驗證不能取代遊戲內確認，先以 Testing 測試版發布。
+使用遊戲 ExecuteStatusOff 操作，只取消自己的狀態，不直接刪除狀態記憶體。以正式版發布；版本、ZIP 內容和發布頻道會在 GitHub Actions 中驗證。
 
 MIT，詳見 LICENSE。
