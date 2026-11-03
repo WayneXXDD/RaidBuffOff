@@ -264,7 +264,7 @@ public sealed class Plugin : IDalamudPlugin
                         ImGui.TextUnformatted("Status ID: " + string.Join(", ", group.Ids));
                         ImGui.EndTooltip();
                     }
-            }
+                }
             }
             if (shown == 0) ImGui.TextWrapped("沒有符合的團隊增益，請清除搜尋或顯示條件。");
         }
