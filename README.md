@@ -1,1 +1,1 @@
-Raid Buff Off testing distribution. Install through https://raw.githubusercontent.com/WayneXXDD/DalamudPlugins/main/pluginmaster.json . Source: https://github.com/WayneXXDD/RaidBuffOff . Enable Get plugin testing builds in Dalamud settings.
+Raid Buff Off stable distribution. Install through https://raw.githubusercontent.com/WayneXXDD/DalamudPlugins/main/pluginmaster.json . Source: https://github.com/WayneXXDD/RaidBuffOff . No plugin testing opt-in is required.

@@ -1,9 +1,9 @@
 [
   {
     "Author": "WayneXXDD",
-    "Name": "Raid Buff Off (Wayne, Testing)",
+    "Name": "Raid Buff Off (Wayne)",
     "InternalName": "RaidBuffOff",
-    "AssemblyVersion": "0.1.3.0",
+    "AssemblyVersion": "1.0.0.0",
     "DalamudApiLevel": 15,
     "ApplicableVersion": "any",
     "Punchline": "Cancel selected buffs during combat in selected areas.",
@@ -16,14 +16,11 @@
       "status",
       "dtr"
     ],
-    "IsTestingExclusive": true,
-    "TestingAssemblyVersion": "0.1.3.0",
-    "TestingDalamudApiLevel": 15,
-    "Changelog": "0.1.3.0: Replace collapsible job headers with static English titles. Remove Pictomancer/Starry Muse and prune its old selection. Add an optional all-area test checkbox; master ON, combat, character readiness and selected-buff requirements still apply. Testing is OFF by default.",
+    "IsTestingExclusive": false,
+    "Changelog": "1.0.0.0: Promote Raid Buff Off to the stable release channel. Remove Testing from the plugin name and distribution metadata; install and update without enabling plugin testing builds.",
     "IsHide": false,
-    "LastUpdate": 1793713835,
+    "LastUpdate": 1793714292,
     "DownloadLinkInstall": "https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo/plugins/RaidBuffOff/latest.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo/plugins/RaidBuffOff/latest.zip",
-    "DownloadLinkTesting": "https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo/plugins/RaidBuffOff/latest.zip"
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo/plugins/RaidBuffOff/latest.zip"
   }
 ]
