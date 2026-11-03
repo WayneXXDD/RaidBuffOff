@@ -1,0 +1,29 @@
+[
+  {
+    "Author": "WayneXXDD",
+    "Name": "Raid Buff Off (Wayne, Testing)",
+    "InternalName": "RaidBuffOff",
+    "AssemblyVersion": "0.1.0.0",
+    "DalamudApiLevel": 15,
+    "ApplicableVersion": "any",
+    "Punchline": "Cancel selected buffs during combat in selected areas.",
+    "Description": "Global client. Checkbox lists select cancellable buffs and duty/territory allowlists. Buffs are cancelled only while enabled, in a selected area, and in combat. DTR left-click toggles ON/OFF; right-click opens settings. Defaults to OFF with empty selections. Uses the game's status-off path. Open /rbo.",
+    "RepoUrl": "https://github.com/WayneXXDD/RaidBuffOff",
+    "LoadSync": false,
+    "CanUnloadAsync": false,
+    "Tags": [
+      "buff",
+      "status",
+      "dtr"
+    ],
+    "IsTestingExclusive": true,
+    "TestingAssemblyVersion": "0.1.0.0",
+    "TestingDalamudApiLevel": 15,
+    "Changelog": "0.1.0.0: Initial testing release with DTR left-click ON/OFF, right-click settings, buff checkboxes, area allowlists and combat-only cancellation. Requires in-game testing.",
+    "IsHide": false,
+    "LastUpdate": 1793710017,
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo/plugins/RaidBuffOff/latest.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo/plugins/RaidBuffOff/latest.zip",
+    "DownloadLinkTesting": "https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo/plugins/RaidBuffOff/latest.zip"
+  }
+]
