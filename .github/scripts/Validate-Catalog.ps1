@@ -14,11 +14,13 @@ function Read-GameCsv([string]$Name) {
 $statuses = @(Read-GameCsv 'Status')
 $duties = @(Read-GameCsv 'ContentFinderCondition')
 foreach ($buff in $catalog.Buffs) {
-    $eligible = @($statuses | Where-Object {
-        $_.Name -ieq $buff.EnglishName -and $_.StatusCategory -eq '1' -and $_.CanStatusOff -eq 'True'
-    })
-    if ($eligible.Count -eq 0) { throw "No cancellable positive Global status for $($buff.EnglishName)." }
-    Write-Output ("Validated cancellable raid buff: " + $buff.EnglishName + " [" + ($eligible.RowId -join ', ') + "]")
+    foreach ($statusId in $buff.StatusIds) {
+        $eligible = @($statuses | Where-Object {
+            $_.RowId -eq [string]$statusId -and $_.Name -ieq $buff.EnglishName -and $_.StatusCategory -eq '1'
+        })
+        if ($eligible.Count -ne 1) { throw "Global PvE raid status mismatch: $($buff.EnglishName) [$statusId]." }
+        Write-Output ("Validated PvE raid buff: " + $buff.EnglishName + " [" + $statusId + "]")
+    }
 }
 foreach ($duty in $catalog.Ultimates) {
     $match = @($duties | Where-Object {

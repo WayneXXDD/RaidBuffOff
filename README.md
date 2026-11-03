@@ -18,7 +18,7 @@
 - 赤魔法師 RDM：Embolden。
 - Pictomancer PCT：Starry Muse。
 
-各職業分組以 checkbox 勾選；同名版本集中在一個勾選項目。清單由遊戲資料再次過濾，只保留正面且 CanStatusOff 的版本。沒有「所有增益」選項。圖片巨集中 Starry Mues 的拼字以正式名稱 Starry Muse 為準。
+各職業分組以 checkbox 勾選；同名版本集中在一個勾選項目。清單使用已核對的 PvE 狀態 ID，並檢查遊戲名稱及正面增益分類；不會混入同名的舊版或 PvP 狀態。CanStatusOff 欄位不足以單獨判定這份 PvE 清單。每次取消仍由遊戲判定，回傳拒絕時不視為成功。沒有「所有增益」選項。圖片巨集中 Starry Mues 的拼字以正式名稱 Starry Muse 為準。
 
 ## 生效場景
 
@@ -48,7 +48,7 @@ https://raw.githubusercontent.com/WayneXXDD/DalamudPlugins/main/pluginmaster.jso
 
 ## 驗證與發布
 
-GitHub Actions 執行生效條件、清單範圍、舊設定遷移及頻率限制測試，並使用 [Global 遊戲資料](https://github.com/xivapi/ffxiv-datamining/tree/master/csv/en) 驗證可取消增益和七個絕境戰對照。編譯後檢查 ZIP 並發布到 plugin-repo 分支。
+GitHub Actions 執行生效條件、清單範圍、舊設定遷移及頻率限制測試，並使用 [Global 遊戲資料](https://github.com/xivapi/ffxiv-datamining/tree/master/csv/en) 驗證 PvE 狀態 ID／名稱與七個絕境戰對照。編譯後檢查 ZIP 並發布到 plugin-repo 分支。
 
 使用遊戲 ExecuteStatusOff 操作，只取消自己的狀態，不直接刪除狀態記憶體。編譯和資料驗證不能取代遊戲內確認，先以 Testing 測試版發布。
 

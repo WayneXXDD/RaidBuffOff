@@ -12,17 +12,24 @@ static class CatalogTests
             "No duplicate named checkboxes");
         foreach (var b in RaidCatalog.Buffs)
         {
-            Check(RaidCatalog.FindBuff(b.EnglishName, true, true) == b, "Eligible buff appears under its job");
-            Check(RaidCatalog.FindBuff(b.EnglishName, false, true) == null, "Debuff names are not accepted");
-            Check(RaidCatalog.FindBuff(b.EnglishName, true, false) == null, "Cannot display a non-cancellable status");
+            foreach (uint id in b.StatusIds)
+            {
+                Check(RaidCatalog.FindBuff(id, b.EnglishName, true) == b, "Eligible PvE status appears under its job");
+                Check(RaidCatalog.FindBuff(id, b.EnglishName, false) == null, "Debuff entries are rejected");
+                Check(RaidCatalog.FindBuff(id, "Well Fed", true) == null, "A name mismatch cannot enter the catalogue");
+            }
         }
-        Check(RaidCatalog.FindBuff("  the balance  ", true, true)?.Job.EndsWith("AST") == true, "Balance attack card");
-        Check(RaidCatalog.FindBuff("the Spear", true, true)?.Job.EndsWith("AST") == true, "Spear attack card");
-        Check(RaidCatalog.FindBuff("Starry Muse", true, true)?.Job.EndsWith("PCT") == true, "Use the real Starry Muse name");
-        Check(RaidCatalog.FindBuff("Starry Mues", true, true) == null, "Do not turn the macro typo into a catalogue name");
+        Check(RaidCatalog.FindBuff(3887, "  the balance  ", true)?.Job.EndsWith("AST") == true, "Current Balance attack card");
+        Check(RaidCatalog.FindBuff(3889, "the Spear", true)?.Job.EndsWith("AST") == true, "Current Spear attack card");
+        Check(RaidCatalog.FindBuff(3685, "Starry Muse", true)?.Job.EndsWith("PCT") == true, "Use the real Starry Muse name");
+        Check(RaidCatalog.FindBuff(3685, "Starry Mues", true) == null, "Do not use the macro typo");
+        foreach (var old in new[] { (1338u, "The Balance"), (1414u, "Battle Litany"), (2034u, "Divination"),
+            (2050u, "Technical Finish"), (2174u, "Brotherhood"), (2282u, "Embolden"), (2722u, "Radiant Finale"),
+            (1882u, "The Balance"), (1885u, "The Spear") })
+            Check(RaidCatalog.FindBuff(old.Item1, old.Item2, true) == null, "Exclude old and PvP versions: " + old.Item2);
         foreach (var name in new[] { "Standard Finish", "Meditative Brotherhood", "The Arrow", "The Bole",
             "The Ewer", "The Spire", "The Wanderer's Minuet", "Mage's Ballad", "Army's Paeon", "Well Fed", "Sprint" })
-            Check(RaidCatalog.FindBuff(name, true, true) == null, "No non-requested or general-purpose buff: " + name);
+            Check(RaidCatalog.FindBuff(200, name, true) == null, "Exclude non-requested buff: " + name);
 
         Check(RaidCatalog.Ultimates.Count == 7, "Exactly seven Ultimate choices");
         Check(RaidCatalog.Ultimates.Select(d => d.TerritoryId).Distinct().Count() == 7, "No duplicate territory IDs");

@@ -1,24 +1,24 @@
 namespace RaidBuffOff.Core;
 
-public sealed record RaidBuffDefinition(string EnglishName, string Job, int JobOrder, int BuffOrder);
+public sealed record RaidBuffDefinition(string EnglishName, string Job, int JobOrder, int BuffOrder, IReadOnlyList<uint> StatusIds);
 public sealed record UltimateDefinition(uint DutyId, uint TerritoryId, string Code, string EnglishName);
 
 public static class RaidCatalog
 {
     public static IReadOnlyList<RaidBuffDefinition> Buffs { get; } = Array.AsReadOnly(new[] {
-        new RaidBuffDefinition("Divination", "占星術士 / AST", 0, 0),
-        new RaidBuffDefinition("The Balance", "占星術士 / AST", 0, 1),
-        new RaidBuffDefinition("The Spear", "占星術士 / AST", 0, 2),
-        new RaidBuffDefinition("Brotherhood", "武僧 / MNK", 1, 0),
-        new RaidBuffDefinition("Battle Litany", "龍騎士 / DRG", 2, 0),
-        new RaidBuffDefinition("Arcane Circle", "Reaper / RPR", 3, 0),
-        new RaidBuffDefinition("Battle Voice", "吟遊詩人 / BRD", 4, 0),
-        new RaidBuffDefinition("Radiant Finale", "吟遊詩人 / BRD", 4, 1),
-        new RaidBuffDefinition("Technical Finish", "舞者 / DNC", 5, 0),
-        new RaidBuffDefinition("Devilment", "舞者 / DNC", 5, 1),
-        new RaidBuffDefinition("Searing Light", "召喚師 / SMN", 6, 0),
-        new RaidBuffDefinition("Embolden", "赤魔法師 / RDM", 7, 0),
-        new RaidBuffDefinition("Starry Muse", "Pictomancer / PCT", 8, 0)
+        new RaidBuffDefinition("Divination", "占星術士 / AST", 0, 0, [1878]),
+        new RaidBuffDefinition("The Balance", "占星術士 / AST", 0, 1, [3887]),
+        new RaidBuffDefinition("The Spear", "占星術士 / AST", 0, 2, [3889]),
+        new RaidBuffDefinition("Brotherhood", "武僧 / MNK", 1, 0, [1185]),
+        new RaidBuffDefinition("Battle Litany", "龍騎士 / DRG", 2, 0, [786]),
+        new RaidBuffDefinition("Arcane Circle", "Reaper / RPR", 3, 0, [2599]),
+        new RaidBuffDefinition("Battle Voice", "吟遊詩人 / BRD", 4, 0, [141]),
+        new RaidBuffDefinition("Radiant Finale", "吟遊詩人 / BRD", 4, 1, [2964]),
+        new RaidBuffDefinition("Technical Finish", "舞者 / DNC", 5, 0, [1822]),
+        new RaidBuffDefinition("Devilment", "舞者 / DNC", 5, 1, [1825]),
+        new RaidBuffDefinition("Searing Light", "召喚師 / SMN", 6, 0, [2703]),
+        new RaidBuffDefinition("Embolden", "赤魔法師 / RDM", 7, 0, [1239, 1297]),
+        new RaidBuffDefinition("Starry Muse", "Pictomancer / PCT", 8, 0, [3685])
     });
     // Verified against Global ContentFinderCondition data. No general territory or future-duty fallback.
     public static IReadOnlyList<UltimateDefinition> Ultimates { get; } = Array.AsReadOnly(new[] {
@@ -30,8 +30,10 @@ public static class RaidCatalog
         new UltimateDefinition(1006, 1238, "FRU", "Futures Rewritten (Ultimate)"),
         new UltimateDefinition(1094, 1363, "UMAD", "Dancing Mad (Ultimate)")
     });
-    public static RaidBuffDefinition? FindBuff(string englishName, bool beneficial, bool canStatusOff) =>
-        beneficial && canStatusOff ? Buffs.FirstOrDefault(b =>
+    // CanStatusOff alone is not a reliable PvE catalogue filter: identical names have old/PvP entries.
+    // Match the current PvE IDs and positive-status category; the game validates every cancellation.
+    public static RaidBuffDefinition? FindBuff(uint statusId, string englishName, bool beneficial) =>
+        beneficial ? Buffs.FirstOrDefault(b => b.StatusIds.Contains(statusId) &&
             string.Equals(b.EnglishName, englishName.Trim(), StringComparison.OrdinalIgnoreCase)) : null;
     public static UltimateDefinition? FindUltimate(uint dutyId, uint territoryId, uint contentType) =>
         contentType == 28 ? Ultimates.FirstOrDefault(d => d.DutyId == dutyId && d.TerritoryId == territoryId) : null;

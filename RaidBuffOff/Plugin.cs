@@ -57,11 +57,11 @@ public sealed class Plugin : IDalamudPlugin
         var english = data.GetExcelSheet<StatusRow>(ClientLanguage.English);
         foreach (var row in data.GetExcelSheet<StatusRow>())
         {
-            if (row.RowId == 0 || row.StatusCategory != 1 || !row.CanStatusOff) continue;
+            if (row.RowId == 0 || row.StatusCategory != 1) continue;
             var name = row.Name.ToString();
             if (string.IsNullOrWhiteSpace(name)) continue;
             var en = english.TryGetRow(row.RowId, out var eng) ? eng.Name.ToString() : name;
-            var definition = RaidCatalog.FindBuff(en, row.StatusCategory == 1, row.CanStatusOff);
+            var definition = RaidCatalog.FindBuff(row.RowId, en, row.StatusCategory == 1);
             if (definition == null) continue;
             buffs.Add(row.RowId, new(row.RowId, name, en, row.Description.ToString(), definition));
         }
@@ -228,7 +228,7 @@ public sealed class Plugin : IDalamudPlugin
     }
     private void DrawBuffs()
     {
-        ImGui.TextWrapped("依職業勾選要取消的團隊增益；只列出遊戲允許自行取消的項目。");
+        ImGui.TextWrapped("依職業勾選要取消的團隊增益。");
         ImGui.InputTextWithHint("搜尋增益", "名稱、英文名稱或狀態 ID", ref buffSearch, 160);
         ImGui.Checkbox("只顯示目前身上的增益", ref onlyPresent);
         ImGui.SameLine(); ImGui.Checkbox("只顯示已勾選", ref onlySelectedBuffs);
