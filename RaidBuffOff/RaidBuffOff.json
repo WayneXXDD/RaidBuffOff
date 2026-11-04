@@ -16,5 +16,5 @@
     "dtr"
   ],
   "IsTestingExclusive": false,
-  "Changelog": "1.0.0.1: Fix oversized black tooltip flashes when hovering buff checkboxes. Measure and set tooltip dimensions before opening, wrap descriptions at a bounded width, and respect BeginTooltip's return value."
+  "Changelog": "1.0.0.1: Fix oversized black tooltip flashes when hovering buff checkboxes. Measure and set tooltip dimensions before opening and wrap descriptions at a bounded width."
 }

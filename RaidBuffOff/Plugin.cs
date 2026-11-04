@@ -274,14 +274,12 @@ public sealed class Plugin : IDalamudPlugin
                                 MathF.Ceiling(ImGui.CalcTextSize(statusIds, false, wrapWidth).Y);
                             ImGui.SetNextWindowSize(new Vector2(wrapWidth + padding.X * 2f,
                                 textHeight + style.ItemSpacing.Y + padding.Y * 2f), ImGuiCond.Always);
-                            if (ImGui.BeginTooltip())
-                            {
-                                ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + wrapWidth);
-                                ImGui.TextUnformatted(group.Description);
-                                ImGui.TextUnformatted(statusIds);
-                                ImGui.PopTextWrapPos();
-                                ImGui.EndTooltip();
-                            }
+                            ImGui.BeginTooltip();
+                            ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + wrapWidth);
+                            ImGui.TextUnformatted(group.Description);
+                            ImGui.TextUnformatted(statusIds);
+                            ImGui.PopTextWrapPos();
+                            ImGui.EndTooltip();
                         }
                     }
                 }
