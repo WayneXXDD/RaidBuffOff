@@ -2,7 +2,7 @@
   "Author": "WayneXXDD",
   "Name": "Raid Buff Off (Wayne)",
   "InternalName": "RaidBuffOff",
-  "AssemblyVersion": "1.0.0.0",
+  "AssemblyVersion": "1.0.0.1",
   "DalamudApiLevel": 15,
   "ApplicableVersion": "any",
   "Punchline": "Cancel selected buffs during combat in selected areas.",
@@ -16,9 +16,9 @@
     "dtr"
   ],
   "IsTestingExclusive": false,
-  "Changelog": "1.0.0.0: Promote Raid Buff Off to the stable release channel. Remove Testing from the plugin name and distribution metadata; install and update without enabling plugin testing builds.",
+  "Changelog": "1.0.0.1: Fix oversized black tooltip flashes when hovering buff checkboxes. Measure and set tooltip dimensions before opening and wrap descriptions at a bounded width.",
   "IsHide": false,
-  "LastUpdate": 1793714292,
+  "LastUpdate": 1793787587,
   "DownloadLinkInstall": "https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo/plugins/RaidBuffOff/latest.zip",
   "DownloadLinkUpdate": "https://raw.githubusercontent.com/WayneXXDD/RaidBuffOff/plugin-repo/plugins/RaidBuffOff/latest.zip"
 }
