@@ -264,10 +264,24 @@ public sealed class Plugin : IDalamudPlugin
                         }
                         if (ImGui.IsItemHovered())
                         {
-                            ImGui.BeginTooltip();
-                            ImGui.TextWrapped(group.Description);
-                            ImGui.TextUnformatted("Status ID: " + string.Join(", ", group.Ids));
-                            ImGui.EndTooltip();
+                            var style = ImGui.GetStyle();
+                            var padding = style.WindowPadding;
+                            var wrapWidth = MathF.Max(1f, MathF.Min(ImGui.GetFontSize() * 24f,
+                                ImGui.GetMainViewport().WorkSize.X * 0.8f - padding.X * 2f));
+                            var statusIds = "Status ID: " + string.Join(", ", group.Ids);
+                            // Measure before BeginTooltip so its first frame cannot reuse a stale size.
+                            var textHeight = MathF.Ceiling(ImGui.CalcTextSize(group.Description, false, wrapWidth).Y) +
+                                MathF.Ceiling(ImGui.CalcTextSize(statusIds, false, wrapWidth).Y);
+                            ImGui.SetNextWindowSize(new Vector2(wrapWidth + padding.X * 2f,
+                                textHeight + style.ItemSpacing.Y + padding.Y * 2f), ImGuiCond.Always);
+                            if (ImGui.BeginTooltip())
+                            {
+                                ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + wrapWidth);
+                                ImGui.TextUnformatted(group.Description);
+                                ImGui.TextUnformatted(statusIds);
+                                ImGui.PopTextWrapPos();
+                                ImGui.EndTooltip();
+                            }
                         }
                     }
                 }
